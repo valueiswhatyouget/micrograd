@@ -1,5 +1,5 @@
 """
-nn.py — a neural network built on top of our from-scratch engine.
+nn.py: a neural network built on top of our from-scratch engine.
 
 A "neural network" sounds fancy but it's just: numbers (weights) multiplied
 and added, passed through a squashing function, repeated in layers. Every one

@@ -1,5 +1,5 @@
 """
-train.py — train OUR neural net, with OUR backprop, on a real problem.
+train.py: train our neural net, with our own backprop, on a real problem.
 
 The task: a "two moons" dataset. Two interleaving crescent-shaped classes
 that a straight line cannot separate. The network has to learn a curved
@@ -16,7 +16,7 @@ from nn import MLP
 random.seed(1337)
 
 
-# ---- 1. make the dataset (no sklearn — built by hand) ------------------
+# ---- 1. make the dataset (no sklearn, built by hand) ------------------
 def make_moons(n=100, noise=0.1):
     X, y = [], []
     for i in range(n):

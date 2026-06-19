@@ -1,5 +1,5 @@
 """
-engine.py — a tiny automatic-differentiation engine, written from scratch.
+engine.py: a tiny automatic-differentiation engine, written from scratch.
 
 This is the whole magic behind every neural network, including the giant ones.
 A `Value` wraps a single number and remembers how it was produced, so that
@@ -8,7 +8,7 @@ out how much every input contributed to the final output. That contribution
 is the *gradient*, and "backpropagation" is just the chain rule applied
 mechanically over the graph.
 
-No numpy, no PyTorch — pure Python. ~120 lines. If you read it top to bottom
+No numpy, no PyTorch, just pure Python. About 120 lines. If you read it top to bottom
 you will actually understand what "training a neural net" means.
 """
 
