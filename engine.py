@@ -54,7 +54,8 @@ class Value:
         return out
 
     def __pow__(self, power):
-        assert isinstance(power, (int, float)), "only constant powers"
+        if not isinstance(power, (int, float)):
+            raise TypeError("only int/float powers are supported")
         out = Value(self.data ** power, (self,), f"**{power}")
 
         def _backward():
