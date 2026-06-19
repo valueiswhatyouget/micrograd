@@ -28,6 +28,7 @@ behind modern AI. This is the small, readable version.
 ## Run it
 
 ```bash
+python -m pip install --upgrade pip   # ensure a modern pip
 pip install -r requirements.txt   # numpy + matplotlib, for the plot only
 python train.py
 ```
