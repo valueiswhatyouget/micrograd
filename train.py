@@ -63,13 +63,12 @@ def loss():
 #   forward  -> compute loss
 #   backward -> compute gradient of loss w.r.t. every weight
 #   step     -> nudge each weight a little against its gradient
-EPOCHS = 50
+EPOCHS = 100
 for k in range(EPOCHS):
     total_loss, acc = loss()
 
     # reset gradients, then backpropagate
-    for p in model.parameters():
-        p.grad = 0.0
+    model.zero_grad()
     total_loss.backward()
 
     # gradient descent with a simple decaying learning rate
@@ -77,7 +76,7 @@ for k in range(EPOCHS):
     for p in model.parameters():
         p.data -= lr * p.grad
 
-    if k % 10 == 0 or k == EPOCHS - 1:
+    if k % 20 == 0 or k == EPOCHS - 1:
         print(f"step {k:3d}   loss {total_loss.data:.4f}   acc {acc*100:.0f}%")
 
 

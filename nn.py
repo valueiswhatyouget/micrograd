@@ -11,12 +11,26 @@ import random
 from engine import Value
 
 
-class Neuron:
+class Module:
+    """Base class: anything with parameters can reset their gradients."""
+
+    def zero_grad(self):
+        for p in self.parameters():
+            p.grad = 0.0
+
+    def parameters(self):
+        return []
+
+
+class Neuron(Module):
     """One neuron: weighted sum of inputs + bias, then a nonlinearity."""
 
     def __init__(self, n_inputs, nonlin=True):
-        # start with small random weights and zero bias
-        self.w = [Value(random.uniform(-1, 1)) for _ in range(n_inputs)]
+        # Scale the initial weights by 1/sqrt(fan-in) so the weighted sum
+        # starts near unit variance instead of saturating tanh in its flat
+        # tails (where gradients vanish and learning stalls).
+        scale = n_inputs ** -0.5
+        self.w = [Value(random.uniform(-1, 1) * scale) for _ in range(n_inputs)]
         self.b = Value(0.0)
         self.nonlin = nonlin
 
@@ -29,7 +43,7 @@ class Neuron:
         return self.w + [self.b]
 
 
-class Layer:
+class Layer(Module):
     """A row of neurons, all seeing the same inputs."""
 
     def __init__(self, n_inputs, n_outputs, nonlin=True):
@@ -43,7 +57,7 @@ class Layer:
         return [p for n in self.neurons for p in n.parameters()]
 
 
-class MLP:
+class MLP(Module):
     """A multi-layer perceptron: layers stacked back to back."""
 
     def __init__(self, n_inputs, layer_sizes):

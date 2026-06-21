@@ -56,6 +56,11 @@ class Value:
     def __pow__(self, power):
         if not isinstance(power, (int, float)):
             raise TypeError("only int/float powers are supported")
+        # A fractional power of a negative base is complex, not real. Python
+        # returns a complex number silently, which would poison the rest of the
+        # graph, so refuse it outright instead.
+        if self.data < 0 and not float(power).is_integer():
+            raise ValueError("fractional power of a negative base is not real")
         out = Value(self.data ** power, (self,), f"**{power}")
 
         def _backward():
@@ -79,8 +84,30 @@ class Value:
         out = Value(0.0 if self.data < 0 else self.data, (self,), "relu")
 
         def _backward():
-            # gradient flows only where the input was positive
+            # gradient flows only where the input was positive. relu has a
+            # kink at exactly 0; we take the subgradient 0 there, which is a
+            # standard, valid choice.
             self.grad += (out.data > 0) * out.grad
+        out._backward = _backward
+        return out
+
+    def exp(self):
+        e = math.exp(self.data)
+        out = Value(e, (self,), "exp")
+
+        def _backward():
+            # d(e^a)/da = e^a, which is just the output value
+            self.grad += e * out.grad
+        out._backward = _backward
+        return out
+
+    def log(self):
+        # natural log; needed for softmax / cross-entropy losses
+        out = Value(math.log(self.data), (self,), "log")
+
+        def _backward():
+            # d(ln a)/da = 1/a
+            self.grad += (1.0 / self.data) * out.grad
         out._backward = _backward
         return out
 
@@ -98,7 +125,12 @@ class Value:
 
     # ---- the heart of it: backpropagation ------------------------------
     def backward(self):
-        """Fill in .grad for every Value that fed into this one."""
+        """Fill in .grad for every Value that fed into this one.
+
+        Gradients accumulate (+=), so calling this twice without resetting
+        .grad to zero in between will double-count. Training loops reset the
+        gradients each step before calling backward (see Module.zero_grad).
+        """
         # We must process nodes in reverse order of how they were built,
         # so a node's gradient is finalized before we push it to its inputs.
         # That ordering is a topological sort of the graph.
