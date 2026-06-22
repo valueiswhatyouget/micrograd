@@ -21,6 +21,8 @@ jobs:
         run: python gradcheck.py
       - name: Train (smoke test)
         run: python train.py
+      - name: Language model (smoke test)
+        run: python train_lm.py --steps 3 --batch 4 --hidden 16 --sample-every 1 --sample-len 20
 
   security:
     runs-on: ubuntu-latest

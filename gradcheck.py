@@ -16,6 +16,7 @@ verifies rather than asks you to take on faith.
 import random
 
 from engine import Value
+from lm import cross_entropy
 
 # A fixed seed makes the whole check deterministic: the same inputs, and so the
 # same error numbers, every run and on every machine.
@@ -121,6 +122,9 @@ def main():
     check("log",                static(lambda v: v[0].log()), 1, positive)
     check("reused input (a*a)", static(lambda v: v[0] * v[0]), 1, real_line)
     check("random graphs",      lambda: make_random_graph(6), 6, real_line)
+    # the language-model loss: gradient of softmax cross-entropy w.r.t. the
+    # logits should be (softmax - one-hot), a classic result worth confirming
+    check("cross-entropy loss",  static(lambda v: cross_entropy(v, target=2)), 5, real_line)
     print("\nall gradients verified against numerical differentiation")
 
 

@@ -28,6 +28,8 @@ about. This is the small, readable version, where you can see every piece.
 | `nn.py` | A neural network (Neuron, Layer, MLP) built on top of those `Value`s. Just weighted sums and a nonlinearity, repeated. |
 | `train.py` | Builds a two-moons dataset, trains the net, prints the loss falling and accuracy rising, and saves the decision-boundary image. |
 | `gradcheck.py` | Verifies every gradient in the engine against numerical differentiation. Runs in CI on every push. |
+| `lm.py` | A character-level language model on the same engine: character embeddings, a small network, a softmax over the vocabulary, and a cross-entropy loss. |
+| `train_lm.py` | Trains the language model on any text file (or a built-in corpus), samples text as it learns, and checkpoints so you can stop and resume. |
 
 ## Run it
 
@@ -95,13 +97,42 @@ Training is one idea in a loop:
 Do that a few dozen times and random starting weights turn into a model that has
 learned the shape of the data.
 
+## A language model on the same engine
+
+The same `Value` and the same `.backward()` can train a language model. `lm.py`
+builds a character-level one: it embeds each character, feeds the last few characters
+through a small network, and predicts the next character with a softmax over the
+vocabulary, trained by cross-entropy loss. Same backprop, pointed at text.
+
+```bash
+python train_lm.py                      # built-in corpus
+python train_lm.py yourtext.txt         # your own text file
+python train_lm.py --steps 4000 --hidden 96 --save run.json   # longer, checkpointed
+```
+
+Watch it learn (the built-in corpus is a handful of proverbs):
+
+```
+step   0   loss 3.37   sample: 'pmiocuiuxgzdqxauj.rhjuuqvokytgrxkfd'
+step 100   loss 2.23   sample: 'hpne scne oachedateept lik. rsp cor the fiktie'
+step 200   loss 1.66   sample: 'ioan tirs the pige xuate the mar. ches aardpagl'
+step 250   loss 1.58   sample: 'aok iuy the sane saurlthe ptiol canwy coxicthen'
+```
+
+It starts as noise and, with nothing but gradient descent, finds spaces, the word
+"the", and sentence-ending periods. It is pure-Python scalar autograd, so it is slow
+and it stays small: it learns the shape of text, not its meaning. `--save` and
+`--resume` checkpoint the weights, so you can train in long stretches and pick up
+where you left off. The cross-entropy loss is gradient-checked in `gradcheck.py`
+alongside every other operation, so the language model rests on the same
+proven-correct backprop as the rest of the repo.
+
 ## Where to take it next
 
-Swap `tanh` for `relu` in `nn.py` and watch the boundary change. Make the data
-harder (more noise, a spiral instead of moons). The engine already has `exp` and
-`log`, so the next real step is a softmax + cross-entropy loss, and from there a tiny
-character-level language model: the same idea pointed at text, on the same engine,
-with its gradients checked the same way.
+Swap `tanh` for `relu` in `nn.py` and watch the boundary change. Feed `train_lm.py`
+a bigger text file, widen the context window, and let it run longer. The natural next
+steps are a proper embedding lookup table, a wider context, and eventually attention:
+the same engine, scaled up as far as pure Python can carry it.
 
 Built in the spirit of Andrej Karpathy's `micrograd`, as a way to learn how model
 training works from first principles.
